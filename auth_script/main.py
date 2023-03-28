@@ -24,12 +24,10 @@ def read_from_stdin():
 
 
 def process_request():
-    ## MOCK
     pkt = read_from_stdin()
     cmd = pkt.split(':')[0]
     if cmd == 'auth':
         u, _, p = pkt.split(':', 3)[1:]
-
         payload = {}
         try:
           payload = jwt.decode(p, jwt_secret, algorithms=["HS256"], options={

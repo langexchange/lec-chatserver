@@ -1,55 +1,37 @@
 # https://github.com/processone/docker-ejabberd/blob/master/ecs/README.md
 ###
 
-hosts:
-  - "localhost" 
+include_config_file:
+  "/home/ejabberd/conf/env.yml":
+    allow_only:
+      - sql_database
+      - sql_username
+      - sql_password
+      - sql_server
+      - sql_port
+      - sql_type
+      - extauth_program
+      - hosts
+
+# hosts:
+#   - "localhost" 
 
 
-## Authentication
-# auth_method: [jwt, sql]
-# auth_method: sql
 auth_method: external
-extauth_program: "python3 /home/ejabberd/conf/auth_script/main.py"
 auth_use_cache: false
-# jwt_auth_only_rule: jwt_only
-# jwt_key: "/home/ejabberd/conf/publickey/jwt.key"
 auth_password_format: scram
 auth_scram_hash: sha256
+extauth_program: "python3 /home/ejabberd/conf/auth_script/main.py"
 
 ## Logging
-loglevel: error
+loglevel: debug
 
 ## Database
-sql_type: pgsql
-sql_server: "postgres"
-sql_port: 5432
-sql_database: "ejabberd"
-sql_username: "ejabberd"
-sql_password: "ejabberd_password"
 default_db: "sql"
 
-##Certificate
-
-
-##Oauth
-# # Here the default value is 30 days
-# oauth_expire: 2592000
-# # OAuth token generation is enabled for all server users
-# oauth_access: all
-# # Check that the client ID is registered
-# oauth_client_id_check: db
-
-
-
-# ca_file: /opt/ejabberd/conf/cacert.pem
-certfiles:
-  - /home/ejabberd/conf/certificates/localhost.pem
-## If you already have certificates, list them here
+# ##Certificate
 # certfiles:
-#  - /etc/letsencrypt/live/domain.tld/fullchain.pem
-#  - /etc/letsencrypt/live/domain.tld/privkey.pem
-
-# default_db: "mnesia"
+#   - /home/ejabberd/conf/certificates/localhost.pem
 
 listen:
   -
@@ -60,34 +42,53 @@ listen:
     shaper: c2s_shaper
     access: c2s
     starttls_required: true
-  -
-    port: 5223
-    ip: "::"
-    tls: true
-    module: ejabberd_c2s
-    max_stanza_size: 262144
-    shaper: c2s_shaper
-    access: c2s
-    starttls_required: true
+  # -
+  #   port: 5223
+  #   ip: "::"
+  #   tls: true
+  #   module: ejabberd_c2s
+  #   max_stanza_size: 262144
+  #   shaper: c2s_shaper
+  #   access: c2s
+  #   starttls_required: true
   -
     port: 5269
     ip: "::"
     module: ejabberd_s2s_in
     max_stanza_size: 524288
+  # -
+  #   port: 5443
+  #   ip: "::" 
+  #   module: ejabberd_http
+  #   tls: true
+  #   # certfile: /opt/ejabberd/conf/localhost.pem
+  #   request_handlers:
+  #     /admin: ejabberd_web_admin
+  #     /api: mod_http_api
+  #     # /bosh: mod_bosh
+  #     /captcha: ejabberd_captcha
+  #     /upload: mod_http_upload
+  #     /: ejabberd_xmlrpc
+  #     /xmpp-websocket: ejabberd_http_ws
+      
+
   -
-    port: 5443
+    port: 443
     ip: "::" 
     module: ejabberd_http
     tls: true
-    # certfile: /opt/ejabberd/conf/localhost.pem
     request_handlers:
-      /admin: ejabberd_web_admin
-      /api: mod_http_api
-      /bosh: mod_bosh
-      /captcha: ejabberd_captcha
-      /upload: mod_http_upload
-      /xmpp: ejabberd_http_ws
-      /: ejabberd_xmlrpc
+      /.well-known/host-meta: mod_host_meta
+      /.well-known/host-meta.json: mod_host_meta
+    custom_headers:
+      "Access-Control-Allow-Origin": "*"
+      "Access-Control-Allow-Methods": "*"
+      "Access-Control-Allow-Headers": "*"
+      "Access-Control-Allow-Credentials": "true"
+      # "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Expose-Headers": "*"
+      "Access-Control-Max-Age": "86400"
+
   -
     port: 5280
     ip: "::"
@@ -98,7 +99,15 @@ listen:
       /.well-known/acme-challenge: ejabberd_acme
       /xmpp-websocket: ejabberd_http_ws
       /oauth: ejabberd_oauth
-      
+    custom_headers:
+      "Access-Control-Allow-Origin": "langexchange.giize.com"
+      "Access-Control-Allow-Methods": "*"
+      "Access-Control-Allow-Headers": "*"
+      "Access-Control-Allow-Credentials": "true"
+      # "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Expose-Headers": "*"
+      "Access-Control-Max-Age": "86400"
+
   -
     port: 3478
     ip: "::"
@@ -199,8 +208,18 @@ shaper_rules:
   s2s_shaper: fast
 
 modules:
+  mod_host_meta:
+    websocket_url: "ws://localhost:5280/xmpp-websocket"
+  mod_mam:
+    ## Mnesia is limited to 2GB, better to use an SQL backend
+    ## For small servers SQLite is a good fit and is very easy
+    ## to configure. Uncomment this when you have SQL configured:
+    # db_type: sql
+    assume_mam_usage: true
+    default: always
+    compress_xml: true
   mod_adhoc: {}
-  mod_admin_extra: {}
+  # mod_admin_extra: {}
   mod_announce:
     access: announce
   mod_avatar: {}
@@ -214,19 +233,15 @@ modules:
   mod_fail2ban: {}
   mod_http_api: {}
   mod_http_upload:
-    put_url: https://@HOST@:5443/upload
+    access: c2s
+    put_url: "https://language-exchanged.s3.ap-southeast-1.amazonaws.com/langchat/"
     custom_headers:
-      "Access-Control-Allow-Origin": "https://@HOST@"
+      "Access-Control-Allow-Origin": *
       "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
       "Access-Control-Allow-Headers": "Content-Type"
+    external_secret: "YOqe6JUVReE/iBJPDgSe25JYjD6vnz7b1Y7cRwRB"
   mod_last: {}
-  mod_mam:
-    ## Mnesia is limited to 2GB, better to use an SQL backend
-    ## For small servers SQLite is a good fit and is very easy
-    ## to configure. Uncomment this when you have SQL configured:
-    # db_type: sql
-    assume_mam_usage: true
-    default: always
+
   mod_mqtt: {}
   mod_muc:
     access:
@@ -280,8 +295,3 @@ modules:
   mod_vcard_xupdate: {}
   mod_version:
     show_os: false
-
-### Local Variables:
-### mode: yaml
-### End:
-### vim: set filetype=yaml tabstop=8
