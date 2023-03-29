@@ -97,8 +97,9 @@ listen:
       /admin: ejabberd_web_admin
       /api: mod_http_api
       /.well-known/acme-challenge: ejabberd_acme
-      /xmpp-websocket: ejabberd_http_ws
+      /ws: ejabberd_http_ws
       /oauth: ejabberd_oauth
+      /upload: mod_http_upload
     custom_headers:
       "Access-Control-Allow-Origin": "langexchange.giize.com"
       "Access-Control-Allow-Methods": "*"
@@ -234,12 +235,15 @@ modules:
   mod_http_api: {}
   mod_http_upload:
     access: c2s
-    put_url: "https://language-exchanged.s3.ap-southeast-1.amazonaws.com/langchat/"
     custom_headers:
-      "Access-Control-Allow-Origin": *
+      "Access-Control-Allow-Origin": "*"
       "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
       "Access-Control-Allow-Headers": "Content-Type"
     external_secret: "YOqe6JUVReE/iBJPDgSe25JYjD6vnz7b1Y7cRwRB"
+    get_url: "https://localhost/chat/app/upload"
+    jid_in_url: sha1
+    name: LangUpload
+    put_url: "https://localhost/chat/app/upload"
   mod_last: {}
 
   mod_mqtt: {}
