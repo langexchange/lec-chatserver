@@ -41,53 +41,7 @@ listen:
     max_stanza_size: 262144
     shaper: c2s_shaper
     access: c2s
-    starttls_required: true
-  # -
-  #   port: 5223
-  #   ip: "::"
-  #   tls: true
-  #   module: ejabberd_c2s
-  #   max_stanza_size: 262144
-  #   shaper: c2s_shaper
-  #   access: c2s
-  #   starttls_required: true
-  -
-    port: 5269
-    ip: "::"
-    module: ejabberd_s2s_in
-    max_stanza_size: 524288
-  # -
-  #   port: 5443
-  #   ip: "::" 
-  #   module: ejabberd_http
-  #   tls: true
-  #   # certfile: /opt/ejabberd/conf/localhost.pem
-  #   request_handlers:
-  #     /admin: ejabberd_web_admin
-  #     /api: mod_http_api
-  #     # /bosh: mod_bosh
-  #     /captcha: ejabberd_captcha
-  #     /upload: mod_http_upload
-  #     /: ejabberd_xmlrpc
-  #     /xmpp-websocket: ejabberd_http_ws
-      
-
-  -
-    port: 443
-    ip: "::" 
-    module: ejabberd_http
-    tls: true
-    request_handlers:
-      /.well-known/host-meta: mod_host_meta
-      /.well-known/host-meta.json: mod_host_meta
-    custom_headers:
-      "Access-Control-Allow-Origin": "*"
-      "Access-Control-Allow-Methods": "*"
-      "Access-Control-Allow-Headers": "*"
-      "Access-Control-Allow-Credentials": "true"
-      # "Access-Control-Allow-Headers": "Content-Type"
-      "Access-Control-Expose-Headers": "*"
-      "Access-Control-Max-Age": "86400"
+    # starttls_required: true
 
   -
     port: 5280
@@ -240,13 +194,12 @@ modules:
       "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
       "Access-Control-Allow-Headers": "Content-Type"
     external_secret: "YOqe6JUVReE/iBJPDgSe25JYjD6vnz7b1Y7cRwRB"
-    get_url: "https://localhost/chat/app/upload"
+    get_url: "https://localhost/app/chat/v1/upload"
     jid_in_url: sha1
     name: LangUpload
-    put_url: "https://localhost/chat/app/upload"
+    put_url: "https://localhost/app/chat/v1/upload"
   mod_last: {}
 
-  mod_mqtt: {}
   mod_muc:
     access:
       - allow

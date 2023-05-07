@@ -27,7 +27,7 @@ def process_request():
     pkt = read_from_stdin()
     cmd = pkt.split(':')[0]
     if cmd == 'auth':
-        u, _, p = pkt.split(':', 3)[1:]
+        id, _, p = pkt.split(':', 3)[1:]
         payload = {}
         try:
           payload = jwt.decode(p, jwt_secret, algorithms=["HS256"], options={
@@ -38,7 +38,7 @@ def process_request():
           return
         
         # Validate user name in token against username which the user types in
-        if "uname" not in payload or payload["uname"] != u:
+        if "id" not in payload or payload["id"] != id:
            write(False)
            return
         
