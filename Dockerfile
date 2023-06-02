@@ -11,11 +11,11 @@ RUN pip3 install --no-cache --upgrade pip setuptools
 
 ## Install necessary dependencies
 COPY --chown=ejabberd ./ejabberd-dev.yml /home/ejabberd/conf/ejabberd.yml
-COPY ./auth_script /home/ejabberd/conf/auth_script
+COPY ./3rdpy/auth_script /home/ejabberd/conf/3rdpy/auth_script
 COPY --chown=ejabberd ./certificates /home/ejabberd/conf/certificates
-RUN chown ejabberd: -R /home/ejabberd/conf/auth_script
+RUN chown ejabberd: -R /home/ejabberd/conf/3rdpy/auth_script
 
-RUN pip3 install --no-cache -r ./conf/auth_script/requirements.txt
+RUN pip3 install --no-cache -r /home/ejabberd/conf/3rdpy/auth_script/requirements.txt
 
 ## Install other dependencies
 RUN apk add --update --no-cache vim \

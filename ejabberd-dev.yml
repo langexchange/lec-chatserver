@@ -13,15 +13,13 @@ include_config_file:
       - extauth_program
       - hosts
 
-# hosts:
-#   - "localhost" 
 
 
 auth_method: external
 auth_use_cache: false
 auth_password_format: scram
 auth_scram_hash: sha256
-extauth_program: "python3 /home/ejabberd/conf/auth_script/main.py"
+extauth_program: "python3 /home/ejabberd/conf/3rdpy/auth_script/main.py"
 
 ## Logging
 loglevel: debug
@@ -51,7 +49,7 @@ listen:
       /admin: ejabberd_web_admin
       /api: mod_http_api
       /.well-known/acme-challenge: ejabberd_acme
-      /ws: ejabberd_http_ws
+      /chatws: ejabberd_http_ws
       /oauth: ejabberd_oauth
       /upload: mod_http_upload
     custom_headers:
@@ -89,8 +87,8 @@ acl:
       - 127.0.0.0/8
       - ::1/128
   admin:
-    - user: vutran@localhost
-    - user: admin@localhost
+    user:
+      - "langteam@localhost"
 
 access_rules:
   local:
@@ -113,6 +111,18 @@ access_rules:
     allow: all
 
 api_permissions:
+  "api access":
+    from:
+      - mod_http_api
+    who:
+      access:
+        allow:
+          acl: admin
+    what:
+      - "*"
+      - "!stop"
+      - "!start"
+
   "console commands":
     from:
       - ejabberd_ctl
@@ -122,7 +132,6 @@ api_permissions:
     who:
       access:
         allow:
-          - acl: loopback
           - acl: admin
       # oauth:
       #   scope: "ejabberd:admin"
@@ -174,7 +183,7 @@ modules:
     default: always
     compress_xml: true
   mod_adhoc: {}
-  # mod_admin_extra: {}
+  mod_admin_extra: {}
   mod_announce:
     access: announce
   mod_avatar: {}
